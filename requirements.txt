@@ -27,3 +27,5 @@ huggingface_hub
 IPython
 pydantic==2.10.6 #neccessary for gradio (update issue)
 torchaudio
+transformers
+dotenv
