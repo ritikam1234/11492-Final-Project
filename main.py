@@ -1,12 +1,15 @@
 import gradio as gr
-import torch
 from espnet2.bin.s2t_inference import Speech2Text # Core ESPnet module for pre-trained models
 import numpy as np
 import librosa
+from espnet_model_zoo.downloader import ModelDownloader
 from dotenv import load_dotenv
 load_dotenv()
 import os
-
+from espnet2.bin.tts_inference import Text2Speech
+from espnet2.utils.types import str_or_none
+import time
+import torch
 #ASR PRocessing
 # global variables (can make it a function later)
 FINETUNE_MODEL="espnet/owsm_v3.1_ebf_base"
@@ -68,13 +71,18 @@ def run_llm_remote(question: str) -> str:
     response = client.text_generation(prompt, max_new_tokens=200)
     return response.strip()
 
+def run_llm_rag(question: str) -> str:
+    return "RAG "
 
+
+def llm_selector_pipeline(question: str, mode: str) -> str:
+    if mode == "RAG Pipeline":
+        "running LLM rag"
+        return run_llm_rag(question)
+    return run_llm_remote(question)
 
 #TTS Code
-from espnet_model_zoo.downloader import ModelDownloader
-from espnet2.bin.tts_inference import Text2Speech
-from espnet2.utils.types import str_or_none
-import time
+
 PRETRAIN_MODEL = "espnet/kan-bayashi_libritts_xvector_vits"
 
 d = ModelDownloader()
@@ -162,10 +170,18 @@ def tts_response(text):
     audio = synthesize_speech(text, text2speech_model, "/content/tts_result/tts_output.wav")
     return audio
 
+
 with gr.Blocks(title="RAG Cascade Model") as demo:
     gr.Markdown("### Record Audio and View Transcription, LLM Output, and TTS Synthesis")
 
     with gr.Column():
+        pipeline_mode = gr.Radio(
+            choices=["Basic Pipeline", "RAG Pipeline"],
+            label="Select Pipeline Mode",
+            value="Basic Pipeline",
+            interactive=True
+        )
+
         input_audio = gr.Audio(
             sources=["microphone"],
             streaming=False,
@@ -181,8 +197,8 @@ with gr.Blocks(title="RAG Cascade Model") as demo:
         clear_btn = gr.Button("Clear")
 
     clear_btn.click(
-        lambda: (None, "", "", None),
-        outputs=[input_audio, transcription_output, llm_output, tts_output]
+        lambda: ("Basic Pipeline", None, "", "", None),
+        outputs=[pipeline_mode, input_audio, transcription_output, llm_output, tts_output]
     )
 
     input_audio.input(
@@ -190,13 +206,13 @@ with gr.Blocks(title="RAG Cascade Model") as demo:
         inputs=input_audio,
         outputs=transcription_output
     ).then(
-        run_llm_remote,
-        inputs=transcription_output,
+        llm_selector_pipeline,
+        inputs=[transcription_output, pipeline_mode],
         outputs=llm_output
     ).then(
         tts_response,
         inputs=llm_output,
         outputs=tts_output
     )
-
-demo.launch(share=True)
+#Here I changed the server
+demo.launch(server_name="0.0.0.0", share=True)
