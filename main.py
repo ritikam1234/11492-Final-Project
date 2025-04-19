@@ -54,7 +54,7 @@ from huggingface_hub import InferenceClient
 hf_token = access_token
 
 client = InferenceClient(
-    model="mistralai/Mistral-7B-Instruct-v0.1",
+    model="tiiuae/Falcon3-1B-Instruct",
     token=hf_token
 )
 
@@ -215,4 +215,4 @@ with gr.Blocks(title="RAG Cascade Model") as demo:
         outputs=tts_output
     )
 #Here I changed the server
-demo.launch(server_name="0.0.0.0", share=True)
+demo.launch(share=True)
