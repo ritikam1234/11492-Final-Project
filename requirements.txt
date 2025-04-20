@@ -1,12 +1,12 @@
 espnet
 espnet-model-zoo
+pydantic==2.10.6 #neccessary for gradio (update issue)
 librosa==0.9.2
 numpy==1.23.5
 torch
 gradio
 huggingface_hub
-pydantic==2.10.6 #neccessary for gradio (update issue)
 torchaudio
 dotenv
-parallel_wavegan==0.5.4 #for TTS
 scipy==1.10.0 #For parallel_wavegan  need this version
+parallel_wavegan==0.5.4 #for TTS

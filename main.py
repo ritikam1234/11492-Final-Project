@@ -215,4 +215,4 @@ with gr.Blocks(title="RAG Cascade Model") as demo:
         outputs=tts_output
     )
 #Here I changed the server
-demo.launch(share=True)
+demo.launch(server_name="0.0.0.0", share=True)
